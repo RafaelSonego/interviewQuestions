@@ -53,7 +53,7 @@ public class UserDaoImpl extends GenericDao implements UserDao {
 			sql.append("	DT_UPDATE = CURRENT_TIMESTAMP ");
 			sql.append("WHERE ");
 			sql.append(" PK_USER = ? ");
-			Object[] parametros = new Object[]{user.getEmail(), user.getFirstName(), user.getLastName(), user.getDateBirthday()};
+			Object[] parametros = new Object[]{user.getEmail(), user.getFirstName(), user.getLastName(), user.getDateBirthday(), user.getUserId()};
 			template.update(sql.toString(), parametros);
 			log.debug("SUCCESS METHOD UPDATE DAO ");
 		} catch (Exception e) {
@@ -78,7 +78,7 @@ public class UserDaoImpl extends GenericDao implements UserDao {
 	public User searchUserByID(int id) {
 		try {
 			log.debug("SEARCHING USERS BY ID ... ");
-			String sql = "SELECT * FROM TBL_USER WHERE ID = ? ";
+			String sql = "SELECT * FROM TBL_USER WHERE PK_USER = ? ";
 			Object[] parameters = new Object[]{id};
 			User user = template.queryForObject(sql, parameters, new UserMapper());
 			log.debug("USER RECOVERED ");
@@ -95,7 +95,7 @@ public class UserDaoImpl extends GenericDao implements UserDao {
 	public List<User> searchUsersByFirstName(String firstName) {
 		try {
 			log.debug("SEARCHING USERS BY FIRST NAME ... ");
-			String sql = "SELECT * FROM TBL_USER WHERE DS_NAME = ? ";
+			String sql = "SELECT * FROM TBL_USER WHERE DS_FIRSTNAME = ? ";
 			List<User> list = template.query(sql, new UserMapper(), firstName);
 			log.debug("SUCCESS TO RECOVER USERS ");
 			return list;
@@ -118,6 +118,23 @@ public class UserDaoImpl extends GenericDao implements UserDao {
 			return null;
 		} catch (Exception e) {
 			log.error("ERROR METHOD SEARCHUSER BY EMAIL DAO ", e);
+			throw new RuntimeException(e);
+		} 
+	}
+	
+	public User searchUser(String login, String psw) {
+		try {
+			log.debug("SEARCHING USERS BY EMAIL ... ");
+			String sql = "SELECT * FROM TBL_USER WHERE DS_LOGIN = ? AND DS_PASSWORD = ? ";
+			Object[] parameters = new Object[]{login, psw};
+			User user = template.queryForObject(sql, parameters, new UserMapper());
+			log.debug("USER RECOVERED ");
+			return user;
+		} catch (final EmptyResultDataAccessException e) {
+			log.debug("NO USER RECOVERED ");
+			return null;
+		} catch (Exception e) {
+			log.error("ERROR METHOD SEARCHUSER DAO ", e);
 			throw new RuntimeException(e);
 		} 
 	}

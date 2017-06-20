@@ -18,4 +18,6 @@ public interface UserDao {
 	
 	User searchUserByEmail(String email);
 	
+	User searchUser(String login, String psw);
+	
 }

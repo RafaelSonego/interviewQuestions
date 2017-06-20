@@ -9,11 +9,12 @@ import org.springframework.stereotype.Service;
 import com.sonego.interviewQuestions.dao.UserDao;
 import com.sonego.interviewQuestions.model.User;
 import com.sonego.interviewQuestions.service.UserService;
+import com.sonego.interviewQuestions.util.EncryptData;
 
 @Service
-public class UsuarioServiceImpl implements UserService {
+public class UserServiceImpl implements UserService {
 
-	static Logger log = Logger.getLogger(UsuarioServiceImpl.class);
+	static Logger log = Logger.getLogger(UserServiceImpl.class);
 	
 	@Autowired
 	private UserDao dao;
@@ -21,6 +22,8 @@ public class UsuarioServiceImpl implements UserService {
 	@Override
 	public User save(User user) throws Exception {
 		try {
+			String pswEncrypt = EncryptData.encryptPassword(user.getPassword());
+			user.setPassword(pswEncrypt);
 			dao.save(user);
 			User userRecovered = searchUserByEmail(user.getEmail());
 			return userRecovered;
@@ -82,6 +85,18 @@ public class UsuarioServiceImpl implements UserService {
 			return list;
 		} catch (Exception ex) {
 			log.error("Error method searchUserByEmail", ex);
+			throw ex;
+		}
+	}
+
+	@Override
+	public boolean validateLogin(String login, String psw) throws Exception {
+		try{
+			String pswEncrypt = EncryptData.encryptPassword(psw);
+			User user = dao.searchUser(login, pswEncrypt);
+			return user != null;
+		}catch(Exception ex){
+			log.error("Error login user", ex);
 			throw ex;
 		}
 	}

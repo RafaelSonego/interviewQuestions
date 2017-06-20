@@ -18,6 +18,6 @@ public interface UserService {
 	
 	User searchUserByEmail(String email) throws Exception;
 	
-	
+	boolean validateLogin(String login, String psw) throws Exception;
 
 }
