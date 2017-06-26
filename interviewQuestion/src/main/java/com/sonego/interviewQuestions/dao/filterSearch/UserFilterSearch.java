@@ -1,8 +1,5 @@
 package com.sonego.interviewQuestions.dao.filterSearch;
 
-import org.springframework.stereotype.Component;
-
-@Component
 public class UserFilterSearch {
 
 	private Integer userId;

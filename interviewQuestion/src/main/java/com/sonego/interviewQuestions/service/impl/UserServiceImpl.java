@@ -20,8 +20,9 @@ public class UserServiceImpl implements UserService {
 	@Autowired
 	private UserDao dao;
 	
-	@Autowired
-	private UserFilterSearch filter;
+	public UserFilterSearch createUserFilter() {
+		return new UserFilterSearch();
+	}
 	
 	@Override
 	public User save(User user) throws Exception {
@@ -74,6 +75,7 @@ public class UserServiceImpl implements UserService {
 	@Override
 	public User searchUserByID(int id) throws Exception {
 		try {
+			UserFilterSearch filter = createUserFilter();
 			filter.toUserId(id);
 			User user = dao.searchUserByFilter(filter);
 			return user;
@@ -86,6 +88,7 @@ public class UserServiceImpl implements UserService {
 	@Override
 	public User searchUserByEmail(String email) throws Exception {
 		try {
+			UserFilterSearch filter = createUserFilter();
 			filter.toEmail(email);
 			User user = dao.searchUserByFilter(filter);
 			return user;
@@ -98,6 +101,7 @@ public class UserServiceImpl implements UserService {
 	@Override
 	public User searchUserByLoginAndEmail(String login, String email) throws Exception {
 		try {
+			UserFilterSearch filter = createUserFilter();
 			filter.toLogin(login).toEmail(email);
 			User user = dao.searchUserByFilter(filter);
 			return user;
@@ -110,13 +114,13 @@ public class UserServiceImpl implements UserService {
 	@Override
 	public boolean validateLogin(String login, String psw) throws Exception {
 		try{
+			UserFilterSearch filter = createUserFilter();
 			String pswEncrypt = EncryptData.encryptPassword(psw);
-			filter.toLogin(login);
-			filter.toPassword(pswEncrypt);
+			filter.toLogin(login).toPassword(pswEncrypt);
 			User user = dao.searchUserByFilter(filter);
 			return user != null;
 		}catch(Exception ex){
-			log.error("Error login user", ex);
+			log.error("Error validate login user", ex);
 			throw ex;
 		}
 	}
