@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.sonego.interviewQuestions.dao.UserDao;
+import com.sonego.interviewQuestions.dao.filterSearch.UserFilterSearch;
 import com.sonego.interviewQuestions.model.User;
 import com.sonego.interviewQuestions.service.UserService;
 import com.sonego.interviewQuestions.util.EncryptData;
@@ -18,6 +19,9 @@ public class UserServiceImpl implements UserService {
 	
 	@Autowired
 	private UserDao dao;
+	
+	@Autowired
+	private UserFilterSearch filter;
 	
 	@Override
 	public User save(User user) throws Exception {
@@ -70,8 +74,9 @@ public class UserServiceImpl implements UserService {
 	@Override
 	public User searchUserByID(int id) throws Exception {
 		try {
-			User list = dao.searchUserByID(id);
-			return list;
+			filter.toUserId(id);
+			User user = dao.searchUserByFilter(filter);
+			return user;
 		} catch (Exception ex) {
 			log.error("Error method searchUserByID", ex);
 			throw ex;
@@ -79,12 +84,25 @@ public class UserServiceImpl implements UserService {
 	}
 
 	@Override
-	public User searchUserByEmail(String nome) throws Exception {
+	public User searchUserByEmail(String email) throws Exception {
 		try {
-			User list = dao.searchUserByEmail(nome);
-			return list;
+			filter.toEmail(email);
+			User user = dao.searchUserByFilter(filter);
+			return user;
 		} catch (Exception ex) {
 			log.error("Error method searchUserByEmail", ex);
+			throw ex;
+		}
+	}
+	
+	@Override
+	public User searchUserByLoginAndEmail(String login, String email) throws Exception {
+		try {
+			filter.toLogin(login).toEmail(email);
+			User user = dao.searchUserByFilter(filter);
+			return user;
+		} catch (Exception ex) {
+			log.error("Error method searchUserByLoginAndEmail", ex);
 			throw ex;
 		}
 	}
@@ -93,7 +111,9 @@ public class UserServiceImpl implements UserService {
 	public boolean validateLogin(String login, String psw) throws Exception {
 		try{
 			String pswEncrypt = EncryptData.encryptPassword(psw);
-			User user = dao.searchUser(login, pswEncrypt);
+			filter.toLogin(login);
+			filter.toPassword(pswEncrypt);
+			User user = dao.searchUserByFilter(filter);
 			return user != null;
 		}catch(Exception ex){
 			log.error("Error login user", ex);

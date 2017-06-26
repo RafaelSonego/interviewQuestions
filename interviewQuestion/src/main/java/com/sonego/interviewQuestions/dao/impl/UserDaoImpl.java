@@ -2,8 +2,10 @@ package com.sonego.interviewQuestions.dao.impl;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.RowMapper;
@@ -11,12 +13,14 @@ import org.springframework.stereotype.Repository;
 
 import com.sonego.interviewQuestions.dao.GenericDao;
 import com.sonego.interviewQuestions.dao.UserDao;
+import com.sonego.interviewQuestions.dao.filterSearch.UserFilterSearch;
 import com.sonego.interviewQuestions.model.User;
 
 @Repository
 public class UserDaoImpl extends GenericDao implements UserDao {
 	static Logger log = Logger.getLogger(UserDaoImpl.class);
 
+	@Override
 	public void save(User user) {
 		try {
 			log.debug(" STARTING METHOD SAVE DAO ");
@@ -41,6 +45,7 @@ public class UserDaoImpl extends GenericDao implements UserDao {
 		} 
 	}
 
+	@Override
 	public void update(User user) {
 		try {
 			log.debug("STARTING METHOD UPDATE DAO");
@@ -62,6 +67,7 @@ public class UserDaoImpl extends GenericDao implements UserDao {
 		} 
 	}
 
+	@Override
 	public List<User> searchUsers() {
 		try {
 			log.debug("SEARCHING USERS ... ");
@@ -75,23 +81,7 @@ public class UserDaoImpl extends GenericDao implements UserDao {
 		} 
 	}
 
-	public User searchUserByID(int id) {
-		try {
-			log.debug("SEARCHING USERS BY ID ... ");
-			String sql = "SELECT * FROM TBL_USER WHERE PK_USER = ? ";
-			Object[] parameters = new Object[]{id};
-			User user = template.queryForObject(sql, parameters, new UserMapper());
-			log.debug("USER RECOVERED ");
-			return user;
-		} catch (final EmptyResultDataAccessException e) {
-			log.debug("NO USER RECOVERED ");
-			return null;
-		} catch (Exception e) {
-			log.error("ERROR METHOD SEARCHUSER BY ID DAO ", e);
-			throw new RuntimeException(e);
-		} 
-	}
-
+	@Override
 	public List<User> searchUsersByFirstName(String firstName) {
 		try {
 			log.debug("SEARCHING USERS BY FIRST NAME ... ");
@@ -105,38 +95,52 @@ public class UserDaoImpl extends GenericDao implements UserDao {
 		} 
 	}
 	
-	public User searchUserByEmail(String email) {
+	@Override
+	public User searchUserByFilter(UserFilterSearch filter) {
 		try {
-			log.debug("SEARCHING USERS BY EMAIL ... ");
-			String sql = "SELECT * FROM TBL_USER WHERE DS_EMAIL = ? ";
-			Object[] parameters = new Object[]{email};
-			User user = template.queryForObject(sql, parameters, new UserMapper());
+			log.debug("SEARCHING USERS BY FILTERS ... ");
+			List<Object> param = new ArrayList<Object>();
+			StringBuilder sql = new StringBuilder("SELECT * FROM TBL_USER ");
+			addFilterQuery(sql, filter, param);
+			User user = template.queryForObject(sql.toString(), param.toArray(), new UserMapper());
 			log.debug("USER RECOVERED ");
 			return user;
 		} catch (final EmptyResultDataAccessException e) {
 			log.debug("NO USER RECOVERED ");
 			return null;
 		} catch (Exception e) {
-			log.error("ERROR METHOD SEARCHUSER BY EMAIL DAO ", e);
+			log.error("ERROR METHOD SEARCHUSER BY FILTERS DAO ", e);
 			throw new RuntimeException(e);
 		} 
 	}
 	
-	public User searchUser(String login, String psw) {
-		try {
-			log.debug("SEARCHING USERS BY EMAIL ... ");
-			String sql = "SELECT * FROM TBL_USER WHERE DS_LOGIN = ? AND DS_PASSWORD = ? ";
-			Object[] parameters = new Object[]{login, psw};
-			User user = template.queryForObject(sql, parameters, new UserMapper());
-			log.debug("USER RECOVERED ");
-			return user;
-		} catch (final EmptyResultDataAccessException e) {
-			log.debug("NO USER RECOVERED ");
-			return null;
-		} catch (Exception e) {
-			log.error("ERROR METHOD SEARCHUSER DAO ", e);
-			throw new RuntimeException(e);
-		} 
+	private void addFilterQuery(StringBuilder sql, UserFilterSearch filter, List<Object> param) {
+		sql.append("WHERE 1 = 1 ");
+		if (filter.getUserId() != null) {
+			sql.append(" AND PK_USER = ? ");
+			param.add(filter.getUserId());
+		}
+		if (StringUtils.isNotBlank(filter.getEmail())) {
+			sql.append(" AND UPPER (DS_EMAIL) = UPPER ( ? ) ");
+			param.add(filter.getEmail().trim());
+		}
+		if (StringUtils.isNotBlank(filter.getFirstName())) {
+			sql.append(" AND UPPER (DS_FIRSTNAME) = UPPER ( ? ) ");
+			param.add(filter.getFirstName().trim());
+		}
+		if (StringUtils.isNotBlank(filter.getLastName())) {
+			sql.append(" AND UPPER (DS_LASTNAME) = UPPER ( ? ) ");
+			param.add(filter.getLastName().trim());
+		}
+		if (StringUtils.isNotBlank(filter.getLogin())) {
+			sql.append(" AND UPPER (DS_LOGIN) = UPPER ( ? ) ");
+			param.add(filter.getLogin().trim());
+		}
+		if (StringUtils.isNotBlank(filter.getPassword())) {
+			sql.append(" AND UPPER (DS_PASSWORD) = UPPER ( ? ) ");
+			param.add(filter.getPassword().trim());
+		}
+		sql.append(" ORDER BY DS_FIRSTNAME ASC");
 	}
 	
 	private class UserMapper implements RowMapper<User> {
@@ -153,4 +157,5 @@ public class UserDaoImpl extends GenericDao implements UserDao {
 			return user;
 		}
 	}
+
 }

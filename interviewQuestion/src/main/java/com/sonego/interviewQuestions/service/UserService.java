@@ -19,5 +19,8 @@ public interface UserService {
 	User searchUserByEmail(String email) throws Exception;
 	
 	boolean validateLogin(String login, String psw) throws Exception;
+	
+	User searchUserByLoginAndEmail(String login, String email) throws Exception;
+	
 
 }
