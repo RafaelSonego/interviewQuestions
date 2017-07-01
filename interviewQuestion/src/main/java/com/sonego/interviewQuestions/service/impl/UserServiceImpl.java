@@ -1,5 +1,6 @@
 package com.sonego.interviewQuestions.service.impl;
 
+import java.util.Collections;
 import java.util.List;
 
 import org.apache.log4j.Logger;
@@ -54,7 +55,7 @@ public class UserServiceImpl implements UserService {
 	public List<User> searchUsers() throws Exception {
 		try {
 			List<User> list = dao.searchUsers();
-			return list;
+			return Collections.unmodifiableList(list);
 		} catch (Exception ex) {
 			log.error("Error method searchUsers", ex);
 			throw ex;
@@ -65,7 +66,7 @@ public class UserServiceImpl implements UserService {
 	public List<User> searchUsersByFirstName(String firstName) throws Exception {
 		try {
 			List<User> list = dao.searchUsersByFirstName(firstName);
-			return list;
+			return Collections.unmodifiableList(list);
 		} catch (Exception ex) {
 			log.error("Error method searchUsersByFirstName", ex);
 			throw ex;
